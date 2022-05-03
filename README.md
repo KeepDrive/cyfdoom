@@ -2,7 +2,7 @@
 A mediocre DOOM map viewer for Create Your Frisk
 
 ## Introduction
-This mod is the start of a future(?) DOOM port to Create Your Frisk. At this point it can:
+This mod is the start of a future(?) DOOM source port to Create Your Frisk. At this point it can:
 - Read most of the DOOM WAD file
 - Read most of the map data
 - Triangulate meshes for walls and ceilings out-of-the-box reasonably quickly
