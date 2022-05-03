@@ -104,7 +104,7 @@ else:
                 lpndx+=1
                 if choice==1 or choice==2:
                     if i[2]=="PLAYPAL":
-                        print("Reading pallete")
+                        print("Reading palette")
                         for j in range(768):
                             playpal.append(wad[i[0]+j])
                     elif i[2]=="TEXTURE1" or i[2]=="TEXTURE2":

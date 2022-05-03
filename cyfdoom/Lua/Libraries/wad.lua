@@ -175,7 +175,7 @@ function wad.read(filename)
         for i=1,#wad.wadFile-infotableofs,16 do--lumps are 16 bytes in size
             local lump=wad.readLump(infotableofs+i)
             if lump[3]=="PLAYPAL" then
-                coroutine.yield("Reading pallete data")
+                coroutine.yield("Reading palette data")
                 PLAYPAL=wad.readPlayPal(lump[1])
             elseif lump[3]=="TEXTURE1" then
                 coroutine.yield("Reading texture1 data")
