@@ -10,8 +10,7 @@ This mod is the start of a future(?) DOOM source port to Create Your Frisk. At t
 - Extract image data from a WAD file completely out-of-the-box(it just takes tens of hours to do so, which pretty much necessitates the use of an extractor python script I provide with the mod)
 
 ## Requirements
-To run this you have to use Create Your Frisk(>=0.6.5)
-And you have to have a working DOOM WAD file.
+To run this you have to use Create Your Frisk(>=0.6.5) and you have to have a working DOOM WAD file.
 
 This mod might not work on Mac OS due to it's graphics API not supporting Geometry Shaders, I cannot test this myself, but I plan to make a workaround for this in the future.
 
@@ -43,8 +42,8 @@ https://pillow.readthedocs.io/en/stable/installation.html#basic-installation
 https://rufat.be/triangle/installing.html
 
 ```
-python3.10 -m pip install pillow
-python3.10 -m pip install triangle
+python3 -m pip install pillow
+python3 -m pip install triangle
 ```
 
 The script will prompt you to choose your WAD, and what to extract(choose the first option - extract everything).
