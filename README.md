@@ -25,7 +25,7 @@ wadname="DOOM"--Note that you don't have to add .wad at the end
 ```
 You can change the map that loads by default here as well:
 ```
-mapname="E2M7"
+mapname="E1M1"
 ```
 (Note that the original Doom uses ExMy and Doom 2 uses MAPxy)
 
