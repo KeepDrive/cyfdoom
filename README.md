@@ -37,7 +37,9 @@ It's tested on the current latest version, Python 3.10.
 
 The script requires Pillow for image extraction and Triangle for map extraction.
 Links to their installation guides:
+
 https://pillow.readthedocs.io/en/stable/installation.html#basic-installation
+
 https://rufat.be/triangle/installing.html
 
 ```
@@ -56,29 +58,42 @@ Sprites/WADs/(wad name)/
 ## Credits
 The triangulation algorithm used is s-hull(http://s-hull.org/), which was surprisingly easy to implement in Lua. To constrain the triangulation cyfdoom also uses an algorithm described on page 7 of the paper "A Fast Algorithm for Generating Constrained Delaunay Triangulations": https://www.newcastle.edu.au/__data/assets/pdf_file/0019/22519/23_A-fast-algortithm-for-generating-constrained-Delaunay-triangulations.pdf
 
-The python script uses the Pillow and Triangle libraries
+The Python extractor script uses the libraries Pillow and Triangle:
+
+https://python-pillow.org/
+
+https://rufat.be/triangle/
 
 Other helpful resources I used when creating this:
 
 Line intersection code source:
+
 https://www.geeksforgeeks.org/check-if-two-given-line-segments-intersect/
 
 Used this as a starting point for the point-inside-polygon check though it seems to not handle the edge case correctly at all:
+
 https://www.geeksforgeeks.org/how-to-check-if-a-given-point-lies-inside-a-polygon/
 
 PNG specifications from libpng:
+
 http://www.libpng.org/pub/png/spec/1.2/PNG-Contents.html
 
 zlib specification for png encoding:
+
 https://github.com/libyal/assorted/blob/main/documentation/Deflate%20(zlib)%20compressed%20data%20format.asciidoc
+
 https://datatracker.ietf.org/doc/html/rfc1951#section-3.2
 
-Used this as a reference for my png extractor as well:
+Used t-mat's Uncompressed PNG generator as a reference for my png extractor as well:
+
 https://gist.github.com/t-mat/fed60b83735a80896fa182a77d5259d6
 
 Most info about the inner workings of Doom are from:
+
 https://doomwiki.org/
+
 https://www.gamers.org/dhs/helpdocs/dmsp1666.html
+
 https://web.archive.org/web/20100921092921/http://the-stable.lancs.ac.uk/~esasb1/doom/uds/
 
 ## Known issues
