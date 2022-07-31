@@ -1,10 +1,13 @@
-require "bit32"--for bitwise stuff
-local png={}
+require "bit32"
+
+local png = {}
+
 --Cyclic Redundancy Check code adapted from:
 --http://www.libpng.org/pub/png/spec/1.2/PNG-CRCAppendix.html
 function png.CRC(bytestable,startpoint,endpoint)
-    startpoint=startpoint or 1
-    endpoint=endpoint or #bytestable
+    startpoint = startpoint or 1
+    endpoint = endpoint or #bytestable
+
     local crctable={0,1996959894,3993919788,2567524794,124634137,1886057615,3915621685,
     2657392035,249268274,2044508324,3772115230,2547177864,162941995,2125561021,
     3887607047,2428444049,498536548,1789927666,4089016648,2227061214,450548861,
@@ -41,142 +44,174 @@ function png.CRC(bytestable,startpoint,endpoint)
     1047427035,2932959818,3654703836,1088359270,936918000,2847714899,3736837829,
     1202900863,817233897,3183342108,3401237130,1404277552,615818150,3134207493,
     3453421203,1423857449,601450431,3009837614,3294710456,1567103746,711928724,
-    3020668471,3272380065,1510334235,755167117}--Precalced CRC table
-    --It isn't stored anywhere except here so it doesn't tank performance
+    3020668471,3272380065,1510334235,755167117}
+    -- It isn't stored globally so it doesn't tank performance
+    
     local c = 4294967295
-    for n=startpoint,endpoint do
-        c=bit32.bxor(crctable[bit32.band(bit32.bxor(c,bytestable[n]),255)+1],bit32.rshift(c,8))
+    
+    for n = startpoint, endpoint do
+        c = bit32.bxor(
+            crctable[
+                bit32.band(
+                    bit32.bxor(c, bytestable[n]),
+                    255
+                ) + 1
+            ],
+            bit32.rshift(c, 8)
+        )
     end
-    return bit32.bxor(c,4294967295)
+    
+    return bit32.bxor(c, 4294967295)
 end
+
 function png.WriteFile(outfile)
-    local pngfile=Misc.OpenFile(outfile,"w")
+    local pngfile = Misc.OpenFile(outfile, "w")
     pngfile.WriteBytes(png.bytes)
 end
+
 function png.WriteHeader(hdrdat)
-    local length=#hdrdat-4
-    png.bytes[#png.bytes+1]=0
-    png.bytes[#png.bytes+1]=0
-    png.bytes[#png.bytes+1]=0
-    for i=#png.bytes+1,#png.bytes-2,-1 do
-        png.bytes[i]=bit32.band(length,255)
-        length=bit32.rshift(length,8)
+    local length = #hdrdat-4
+    
+    png.bytes[#png.bytes + 1] = 0
+    png.bytes[#png.bytes + 1] = 0
+    png.bytes[#png.bytes + 1] = 0
+    for i = #png.bytes + 1, #png.bytes - 2, -1 do
+        png.bytes[i] = bit32.band(length, 255)
+        length = bit32.rshift(length, 8)
     end
-    for i=1,#hdrdat do
-        png.bytes[#png.bytes+1]=hdrdat[i]
+
+    for i = 1, #hdrdat do
+        png.bytes[#png.bytes + 1] = hdrdat[i]
     end
-    local crc=png.CRC(hdrdat)
-    png.bytes[#png.bytes+1]=0
-    png.bytes[#png.bytes+1]=0
-    png.bytes[#png.bytes+1]=0
-    for i=#png.bytes+1,#png.bytes-2,-1 do
-        png.bytes[i]=bit32.band(crc,255)
-        crc=bit32.rshift(crc,8)
+    
+    local crc = png.CRC(hdrdat)
+    png.bytes[#png.bytes + 1] = 0
+    png.bytes[#png.bytes + 1] = 0
+    png.bytes[#png.bytes + 1] = 0
+    for i = #png.bytes + 1, #png.bytes - 2, -1 do
+        png.bytes[i] = bit32.band(crc, 255)
+        crc = bit32.rshift(crc, 8)
     end
 end
-function png.CreateNewImage(width,height,pixtable)
-    png.bytes={137,80,78,71,13,10,26,10}--default png header
-    local ihdrtypedata={73,72,68,82,--"IHDR"
-    0,0,0,0,0,0,0,0,--Width and height, 4 bytes each
-    8,--Bit depth, 8 bits per colour value, 0-255 range
-    6,--Colour type, RGBA
-    0,--Compression, always 0 - inflate/deflate
-    0,--Filter method, none
-    0--Interlace method, no interlace
+function png.CreateNewImage(width, height, pixtable)
+    png.bytes={137, 80, 78, 71, 13, 10, 26, 10} -- Default png header
+    
+    local ihdrtypedata={73, 72, 68, 82, -- "IHDR"
+    0,0,0,0, 0,0,0,0, -- Width and height, 4 bytes each
+    8, -- Bit depth, 8 bits per colour value, 0-255 range
+    6, -- Colour type, RGBA
+    0, -- Compression, always 0 - inflate/deflate
+    0, -- Filter method, none
+    0 -- Interlace method, no interlace
     }
-    local wrtsize=width
-    for i=8,5,-1 do
-        ihdrtypedata[i]=bit32.band(wrtsize,255)
-        wrtsize=bit32.rshift(wrtsize,8)
+
+    local wrtsize = width
+    for i = 8, 5, -1 do
+        ihdrtypedata[i] = bit32.band(wrtsize, 255)
+        wrtsize = bit32.rshift(wrtsize, 8)
     end
-    local wrtsize=height
-    for i=12,9,-1 do
-        ihdrtypedata[i]=bit32.band(wrtsize,255)
-        wrtsize=bit32.rshift(wrtsize,8)
+    
+    local wrtsize = height
+    for i = 12, 9, -1 do
+        ihdrtypedata[i] = bit32.band(wrtsize, 255)
+        wrtsize = bit32.rshift(wrtsize, 8)
     end
     png.WriteHeader(ihdrtypedata)
-    local idattypedata={73,68,65,84,--"IDAT"
-    120,--Compression method,always 8
+    
+    local idattypedata={73, 68, 65, 84, -- "IDAT"
+    120, -- Compression method, always 8
     1
     }
+
     local length=height*(width*4+6)+11
-    png.bytes[#png.bytes+1]=0
-    png.bytes[#png.bytes+1]=0
-    png.bytes[#png.bytes+1]=0
-    for i=#png.bytes+1,#png.bytes-2,-1 do
-        png.bytes[i]=bit32.band(length,255)
-        length=bit32.rshift(length,8)
+
+    png.bytes[#png.bytes + 1] = 0
+    png.bytes[#png.bytes + 1] = 0
+    png.bytes[#png.bytes + 1] = 0
+    for i = #png.bytes + 1, #png.bytes - 2, -1 do
+        png.bytes[i] = bit32.band(length, 255)
+        length = bit32.rshift(length, 8)
     end
-    for i=1,#idattypedata do
-        png.bytes[#png.bytes+1]=idattypedata[i]
+
+    for i = 1, #idattypedata do
+        png.bytes[#png.bytes + 1] = idattypedata[i]
     end
-    local A=1
-    local B=0
-    for y=0,height-1 do
-        idattypedata[#idattypedata+1]=0
-        png.bytes[#png.bytes+1]=0
-        datsize=1+width*4
-        for i=#idattypedata+1,#idattypedata+2 do
-            idattypedata[i]=bit32.band(datsize,255)
-            png.bytes[#png.bytes+1]=idattypedata[i]
-            datsize=bit32.rshift(datsize,8)
+
+    local A = 1
+    local B = 0
+    for y = 0, height - 1 do
+        idattypedata[#idattypedata + 1] = 0
+        png.bytes[#png.bytes + 1] = 0
+        datsize = width * 4 + 1
+        for i = #idattypedata + 1, #idattypedata + 2 do
+            idattypedata[i] = bit32.band(datsize, 255)
+            png.bytes[#png.bytes + 1] = idattypedata[i]
+            datsize = bit32.rshift(datsize, 8)
         end
-        datsize=bit32.bnot(1+width*4)
-        for i=#idattypedata+1,#idattypedata+2 do
-            idattypedata[i]=bit32.band(datsize,255)
-            png.bytes[#png.bytes+1]=idattypedata[i]
-            datsize=bit32.rshift(datsize,8)
+
+        datsize = bit32.bnot(width * 4 + 1)
+        for i = #idattypedata + 1, #idattypedata + 2 do
+            idattypedata[i] = bit32.band(datsize, 255)
+            png.bytes[#png.bytes + 1] = idattypedata[i]
+            datsize = bit32.rshift(datsize, 8)
         end
-        idattypedata[#idattypedata+1]=0
-        png.bytes[#png.bytes+1]=0
-        B=(B+A)%65521
-        for x=1,width*4 do
-            idattypedata[#idattypedata+1]=pixtable[x+y*width*4]
-            png.bytes[#png.bytes+1]=idattypedata[#idattypedata]
-            A=(A+idattypedata[#idattypedata])%65521
-            B=(B+A)%65521
+
+        idattypedata[#idattypedata + 1] = 0
+        png.bytes[#png.bytes + 1] = 0
+        B = (B + A) % 65521
+        for x = 1, width * 4 do
+            idattypedata[#idattypedata + 1] = pixtable[x + (y * width * 4)]
+            png.bytes[#png.bytes + 1] = idattypedata[#idattypedata]
+            A = (A + idattypedata[#idattypedata]) % 65521
+            B = (B + A) % 65521
         end
     end
-    idattypedata[#idattypedata+1]=1--Terminator block
-    idattypedata[#idattypedata+1]=0
-    idattypedata[#idattypedata+1]=0
-    idattypedata[#idattypedata+1]=255
-    idattypedata[#idattypedata+1]=255
-    idattypedata[#idattypedata+1]=0
-    for i=#idattypedata+1,#idattypedata,-1 do
-        idattypedata[i]=bit32.band(B,255)
-        B=bit32.rshift(B,8)
+    
+    idattypedata[#idattypedata + 1] = 1 -- Terminator block
+    idattypedata[#idattypedata + 1] = 0
+    idattypedata[#idattypedata + 1] = 0
+    idattypedata[#idattypedata + 1] = 255
+    idattypedata[#idattypedata + 1] = 255
+    idattypedata[#idattypedata + 1] = 0
+    for i = #idattypedata + 1, #idattypedata, -1 do
+        idattypedata[i] = bit32.band(B, 255)
+        B = bit32.rshift(B, 8)
     end
+
     idattypedata[#idattypedata+1]=0
-    for i=#idattypedata+1,#idattypedata,-1 do
-        idattypedata[i]=bit32.band(A,255)
-        A=bit32.rshift(A,8)
+    for i = #idattypedata + 1, #idattypedata, -1 do
+        idattypedata[i] = bit32.band(A, 255)
+        A = bit32.rshift(A, 8)
     end
-    local crc=png.CRC(idattypedata)
-    for i=#idattypedata-8,#idattypedata do
-        png.bytes[#png.bytes+1]=idattypedata[i]
+
+    local crc = png.CRC(idattypedata)
+    for i = #idattypedata - 8, #idattypedata do
+        png.bytes[#png.bytes + 1] = idattypedata[i]
     end
-    idattypedata=nil
-    png.bytes[#png.bytes+1]=0
-    png.bytes[#png.bytes+1]=0
-    png.bytes[#png.bytes+1]=0
-    for i=#png.bytes+1,#png.bytes-2,-1 do
-        png.bytes[i]=bit32.band(crc,255)
-        crc=bit32.rshift(crc,8)
+
+    idattypedata = nil
+    
+    png.bytes[#png.bytes + 1] = 0
+    png.bytes[#png.bytes + 1] = 0
+    png.bytes[#png.bytes + 1] = 0
+    for i = #png.bytes + 1, #png.bytes - 2, -1 do
+        png.bytes[i] = bit32.band(crc, 255)
+        crc = bit32.rshift(crc, 8)
     end
+    
     --IEND header is the same always
-    png.bytes[#png.bytes+1]=0
-    png.bytes[#png.bytes+1]=0
-    png.bytes[#png.bytes+1]=0
-    png.bytes[#png.bytes+1]=0
-    png.bytes[#png.bytes+1]=73--"IEND"
-    png.bytes[#png.bytes+1]=69
-    png.bytes[#png.bytes+1]=78
-    png.bytes[#png.bytes+1]=68
-    png.bytes[#png.bytes+1]=174--crc
-    png.bytes[#png.bytes+1]=66
-    png.bytes[#png.bytes+1]=96
-    png.bytes[#png.bytes+1]=130
+    png.bytes[#png.bytes + 1] = 0
+    png.bytes[#png.bytes + 1] = 0
+    png.bytes[#png.bytes + 1] = 0
+    png.bytes[#png.bytes + 1] = 0
+    png.bytes[#png.bytes + 1] = 73 -- "IEND"
+    png.bytes[#png.bytes + 1] = 69
+    png.bytes[#png.bytes + 1] = 78
+    png.bytes[#png.bytes + 1] = 68
+    png.bytes[#png.bytes + 1] = 174 -- crc
+    png.bytes[#png.bytes + 1] = 66
+    png.bytes[#png.bytes + 1] = 96
+    png.bytes[#png.bytes + 1] = 130
 end
 
 return png

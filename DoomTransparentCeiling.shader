@@ -1,4 +1,4 @@
-shader "CYF/DoomFloor"
+shader "CYF/DoomTransparentCeiling"
 {
 	Properties
     {
@@ -6,9 +6,9 @@ shader "CYF/DoomFloor"
     }
 	SubShader
 	{
-		Tags {"Queue" = "Transparent"}
+		Tags {"Queue" = "Transparent-1"}
 
-        Cull Front
+        Cull Back
         Lighting Off
         Blend SrcAlpha OneMinusSrcAlpha
 

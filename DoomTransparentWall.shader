@@ -1,4 +1,4 @@
-shader "CYF/DoomSprite"
+shader "CYF/DoomTransparentWall"
 {
     Properties
     {
@@ -6,7 +6,7 @@ shader "CYF/DoomSprite"
     }
     SubShader
     {
-        Tags {"Queue" = "Transparent"}
+        Tags {"Queue" = "Transparent-1"}
 
         Cull Back
         Lighting Off
@@ -20,7 +20,6 @@ shader "CYF/DoomSprite"
 
             struct appdata
             {
-                float4 vertex : POSITION;
                 float2 uv : TEXCOORD0;
             };
 
@@ -34,33 +33,37 @@ shader "CYF/DoomSprite"
 
             float4x4 MVP;
 
-            float4 pos;
-
-            float scale;
+            float4 pos1, pos2, pos3, pos4;
+            float4 uvpos12, uvpos34;
 
             v2f vert(appdata v)
             {
                 v2f o;
                 
-                float yRotation = MVP[0].y;
-                //This makes the sprite follow the camera
-                v.vertex = float4(cos(yRotation) * v.vertex.x * scale, v.vertex.y * scale, -sin(yRotation) * v.vertex.x * scale, 1.0);
+                int arrIndex = int(v.uv.y * 2 + v.uv.x);
                 
                 MVP[0].y = 0;
-                o.vertex = mul(MVP, v.vertex + pos);
-                MVP[0].y = yRotation;
 
-                o.uv = v.uv;
+                if (arrIndex == 0){
+                    o.vertex = mul(MVP, pos1);
+                    o.uv = uvpos12.xy;
+                }else if (arrIndex == 1){
+                    o.vertex = mul(MVP, pos2);
+                    o.uv = uvpos12.zw;
+                }else if(arrIndex == 2){
+                    o.vertex = mul(MVP, pos3);
+                    o.uv = uvpos34.xy;
+                }else{
+                    o.vertex = mul(MVP, pos4);
+                    o.uv = uvpos34.zw;
+                }
                 
                 return o;
             }
+
             fixed4 frag(v2f i) : SV_Target
             {
-                fixed4 color = tex2D(_MainTex, i.uv);
-                
-                clip(color.a - 0.001);
-                
-                return color;
+                return tex2D(_MainTex, i.uv);
             }
         ENDCG
         }
