@@ -30,14 +30,8 @@ local WADList = {}
 
 local lastVisibleWAD = 0
 
-local function endChoicer()
-    Encounter["nextwaves"] = {"cyfdoomMain"}
-    EndWave()
-    Encounter.Call("State", {"DEFENDING"})
-end
-
-local backgroundSprite = CreateSprite(bgImage, bgLayer)
-backgroundSprite.Scale(2, 2)
+local bgSprite = CreateSprite(bgImage, bgLayer)
+bgSprite.Scale(2, 2)
 
 local titles = {}
 
@@ -49,6 +43,12 @@ local function createTitle(titleText, position)
     newTitle.progressmode = "none"
     newTitle.HideBubble()
     titles[#titles + 1] = newTitle
+end
+
+local function getOnScreenTitleByIndex(index, WADIndex)
+    WADIndex = WADIndex or lastVisibleWAD
+    local WADsAmt = #WADList
+    return WADList[(WADsAmt + (WADIndex - maxWADsVisible + index) - 1) % WADsAmt + 1]
 end
 
 local function processTitleString(titleString)
@@ -65,9 +65,8 @@ local function refreshTitles(WADIndex)
     WADIndex = WADIndex or lastVisibleWAD
     for i = #titles, 1, -1 do
         local newTitle = titles[i]
-        local WADsAmt = #WADList
         newTitle.x = newTitle.x + newTitle.getTextWidth()
-        newTitle.SetText("[instant][font:uidialog]"..processTitleString(WADList[(WADsAmt + (WADIndex - maxWADsVisible + i) - 1) % WADsAmt + 1]))
+        newTitle.SetText("[instant][font:uidialog]"..processTitleString(getOnScreenTitleByIndex(i, WADIndex)))
         newTitle.x = newTitle.x - newTitle.getTextWidth()
     end
 end
@@ -114,6 +113,21 @@ local function refreshWADs()
     end
 end
 
+local function endChoicer()
+    Encounter["nextwaves"] = {"cyfdoomMain"}
+    bgSprite.Remove()
+    for i = #buttons, 1, -1 do
+        buttons[i].Remove()
+    end
+    buttons = nil
+    for i = #titles, 1, -1 do
+        titles[i].Remove()
+    end
+    titles = nil
+    EndWave()
+    Encounter.Call("State", {"DEFENDING"})
+end
+
 local selectedButton = 1
 
 local function processControls()
@@ -156,9 +170,14 @@ local function processControls()
     if Input.Confirm == 1 then
         if selectedButton == 1 then
             refreshWADs()
+        elseif selectedButton % 2 == 0 then
+            Encounter.SetVar("wadFileName", getOnScreenTitleByIndex(selectedButton / 2))
+            endChoicer()
         end
     end
-    buttons[selectedButton].color = yellow
+    if buttons ~= nil then
+        buttons[selectedButton].color = yellow
+    end
 end
 
 refreshWADs()
