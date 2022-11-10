@@ -17,9 +17,8 @@ local maxWADsVisible = 6
 local function getWADs()
     local WADs = Misc.ListDir("WADs")
     for i = #WADs, 1, -1 do
-        local wadFile = Misc.OpenFile("WADs\\"..WADs[i], 'r')
-        local firstLine = wadFile.ReadLine(1)
-        if firstLine:sub(2,4) ~= "WAD" then
+        local WADType = Misc.OpenFile("WADs\\"..WADs[i], 'r').ReadLine(1):sub(1,4)
+        if WADType ~= "IWAD" and WADType ~= "PWAD" then
             table.remove(WADs, i)
         end
     end
