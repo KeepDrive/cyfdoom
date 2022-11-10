@@ -10,7 +10,7 @@ local textLayer = "Top"
 
 local bgImage = "cyfdoomMenuDesign"
 
-local wadNotFoundString = "[instant][font:uidialog]No WADs found in the WADs folder.\nPlease make sure that your WADs are in the correct folder and are readable.\nThen press refresh or reload cyfDoom."
+local WADNotFoundString = "[instant][font:uidialog]No WADs found in the WADs folder.\nPlease make sure that your WADs are in the correct folder and are readable.\nThen press refresh or reload cyfDoom."
 
 local maxWADsVisible = 6
 
@@ -84,8 +84,8 @@ end
 createButton("Refresh", {400, 346})
 
 local function refreshWADs()
-    if wadNotFoundText ~= nil then
-        wadNotFoundText.Remove()
+    if WADNotFoundText ~= nil then
+        WADNotFoundText.Remove()
     end
     while #buttons > 1 do
         buttons[#buttons].Remove()
@@ -97,15 +97,15 @@ local function refreshWADs()
     end
     WADList = getWADs()
     if #WADList == 0 then
-        wadNotFoundText = CreateText(wadNotFoundString, {60, 300}, 520, bgLayer)
-        wadNotFoundText.color = {0.5, 0.5, 0.5}
-        wadNotFoundText.progressmode = "none"
-        wadNotFoundText.HideBubble()
+        WADNotFoundText = CreateText(WADNotFoundString, {60, 300}, 520, bgLayer)
+        WADNotFoundText.color = {0.5, 0.5, 0.5}
+        WADNotFoundText.progressmode = "none"
+        WADNotFoundText.HideBubble()
     else
         lastVisibleWAD = min(maxWADsVisible, #WADList)
         for i = 0, lastVisibleWAD - 1 do
-            local wadTitle = processTitleString(WADList[i + 1])
-            createTitle(wadTitle, {315, 300 - i * 40})
+            local WADTitle = processTitleString(WADList[i + 1])
+            createTitle(WADTitle, {315, 300 - i * 40})
             createButton("Play", {400, 300 - i * 40})
             createButton("Options", {475, 300 - i * 40})
         end
@@ -170,7 +170,7 @@ local function processControls()
         if selectedButton == 1 then
             refreshWADs()
         elseif selectedButton % 2 == 0 then
-            Encounter.SetVar("wadFileName", getOnScreenTitleByIndex(selectedButton / 2))
+            Encounter.SetVar("WADFileName", getOnScreenTitleByIndex(selectedButton / 2))
             endChoicer()
         end
     end
