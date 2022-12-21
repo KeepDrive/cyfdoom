@@ -30,9 +30,18 @@ local screenSizeY = 480
 
 local updatables = {}
 
+local function disableDefaultUI()
+    UI.Hide(true)
+    UI.StopUpdate(true)
+    Arena.Hide()
+    Player.SetControlOverride(true)
+    Player.sprite.alpha = 0
+end
+
 local function setText(self, text)
     text = text or ""
-    self.text.SetText("[instant]"..text)
+    self.textObject.SetText("[instant]"..text)
+    self.text = text
 end
 local function setFocus(self, x, y, focus)
     focus = focus or true
@@ -109,23 +118,23 @@ local function defaultControls(self)
     end
 end
 
-local function textUpdate(self)
+local function updateText(self)
     local objectArray = self.parent
     local left = objectArray.left
     local right = objectArray.right
     local bottom = objectArray.bottom
     local top = objectArray.top
-    self.text.x = left + (self.arrayX > 1 and (self.arrayX - 1) * (screenSizeX - right - left) / (#objectArray - 1) or 0)
-    self.text.y = screenSizeY - top - (self.arrayY > 1 and (self.arrayY - 1) * (screenSizeY - top - bottom) / (#objectArray[self.arrayX] - 1) or 0)
-    self.text.color = self.active and activeColour or deactiveColour
+    self.textObject.x = left + (self.arrayX > 1 and (self.arrayX - 1) * (screenSizeX - right - left) / (#objectArray - 1) or 0)
+    self.textObject.y = screenSizeY - top - (self.arrayY > 1 and (self.arrayY - 1) * (screenSizeY - top - bottom) / (#objectArray[self.arrayX] - 1) or 0)
+    self.textObject.color = self.active and activeColour or deactiveColour
 end
-local function buttonUpdate(self)
-    textUpdate(self)
+local function updateButton(self)
+    updateText(self)
     if self.parent.focusedObject == self then
-        self.text.color = focusedColour
+        self.textObject.color = focusedColour
     end
 end
-local function objectArrayUpdate(self)
+local function updateObjectArray(self)
     for x = 1, #self do
         for y = 1, #self[x] do
             if self[x][y].update != nil then
@@ -138,6 +147,21 @@ local function objectArrayUpdate(self)
     end
 end
 
+
+local function destroyTextObject(self)
+    self.textObject.Remove()
+end
+local function destroyObjectArray(self)
+    for x = 1, #self do
+        for y = 1, #self[x] do
+            if self[x][y].destroy != nil then
+                self[x][y]:destroy()
+                self[x][y] = nil
+            end
+        end
+    end
+end
+
 local function createLabel(self, x, y, text, position, layer)
     text = text or ""
     position = position or defaultPosition
@@ -146,11 +170,13 @@ local function createLabel(self, x, y, text, position, layer)
     labelText.SetFont(labelFont)
     labelText.progressmode = labelProgressMode
     labelText.HideBubble()
-    self[x][y] = {
-        parent = self, arrayX = x, arrayY = y, active = true, text = labelText,
-        setText = setText, update = textUpdate
+    local label = {
+        parent = self, arrayX = x, arrayY = y, active = true, textObject = labelText, text = text,
+        destroy = destroyTextObject, setText = setText, update = updateText
     }
-    self[x][y]:setText(text)
+    label:setText(text)
+    self[x][y] = label
+    return label
 end
 
 local function createButton(self, x, y, func, text, position, layer)
@@ -162,11 +188,14 @@ local function createButton(self, x, y, func, text, position, layer)
     buttonText.SetFont(buttonFont)
     buttonText.progressmode = buttonProgressMode
     buttonText.HideBubble()
-    self[x][y] = {
-        parent = self, arrayX = x, arrayY = y, active = true, text = buttonText,
-        setText = setText, update = buttonUpdate, func = func
+    local button = {
+        parent = self, arrayX = x, arrayY = y, active = true, textObject = buttonText, text = text,
+        setText = setText, func = func,
+        destroy = destroyTextObject, update = updateButton
     }
-    self[x][y]:setText(text)
+    button:setText(text)
+    self[x][y] = button
+    return button
 end
 
 local function createObjectArray(sizeX, sizeY, left, right, bottom, top)
@@ -179,7 +208,7 @@ local function createObjectArray(sizeX, sizeY, left, right, bottom, top)
         createButton = createButton, createLabel = createLabel, setFocus = setFocus,
         handleLeftOverflow = defaultHandleLeftOverflow, handleRightOverflow = defaultHandleRightOverflow,
         handleUpOverflow = defaultHandleUpOverflow, handleDownOverflow = defaultHandleDownOverflow,
-        handleControls = defaultControls, update = objectArrayUpdate
+        handleControls = defaultControls, destroy = destroyObjectArray, update = updateObjectArray
     }
     for x = 1, sizeX do
         objectArray[x] = {}
@@ -199,5 +228,6 @@ end
 
 return {
     createObjectArray = createObjectArray,
+    disableDefaultUI = disableDefaultUI,
     update = update
 }
